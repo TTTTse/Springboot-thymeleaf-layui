@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+</head>
+<body>
+<!--首先判断是否有数据，没有数据整个表不显示-->
+<table border="1px" th:if="${not#lists.isEmpty(userInfoList)}">
+    <tr>
+       <td>用户编号</td>
+        <td>用户名</td>
+    </tr>
+    <tr th:each="user:${userInfoList}">
+        <td th:text="${user.userid}"></td>
+        <td th:text="${user.username}"></td>
+    </tr>
+</table>
+<button value="点我" onclick="showName()">点我</button>
+</body>
+<script th:inline="javaScript">
+    function showName() {
+        var name = [[${name}]];
+        alert(name);
+    }
+</script>
+</html>

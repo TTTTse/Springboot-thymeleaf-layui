@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script th:src="@{/js/jquery-1.10.2.js}"></script>
+    <script th:src="@{/layui/layui.all.js}"></script>
+    <link rel="stylesheet" th:href="@{/layui/css/layui.css}">
+</head>
+<body>
+<table class="layui-hide" id="demo" lay-filter="test"></table>
+<script type="text/html" id="mytoolbar">
+    <button type="button" class="layui-btn layui-btn-sm" lay-event="saveUser">
+        <i class="layui-icon layui-icon-addition"></i>添加</button>
+    <button type="button" class="layui-btn layui-btn-sm layui-btn-danger" lay-event="delUser">
+        <i class="layui-icon layui-icon-delete"></i>删除</button>
+</script>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看</a>
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+</body>
+<form class="layui-form" action="" id="userform" style="display: none">
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户名</label>
+        <div class="layui-input-block">
+            <input type="text" name="username" required  lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">密  码</label>
+            <div class="layui-input-block">
+                <input type="text" name="password" required  lay-verify="required" placeholder="请输入用户密码" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button type="button" class="layui-btn layui-btn layui-btn-normal" lay-submit lay-filter="saveUserForm">提交</button>
+            <button type="reset" class="layui-btn layui-btn layui-btn-warm">重置</button>
+        </div>
+    </div>
+</form>
+<form class="layui-form" action="" id="userEditForm" style="display:none ">
+    <input type="hidden" id="userid" name="userid" >
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户a名</label>
+        <div class="layui-input-block">
+            <input type="text" name="username" required  lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button type="button" class="layui-btn layui-btn layui-btn-normal" lay-submit lay-filter="editUserForm">修改</button>
+            <button type="reset" class="layui-btn layui-btn layui-btn layui-btn-warm" >重置</button>
+        </div>
+    </div>
+
+</form>
+
+<script>
+    var form = layui.form;
+        var table = layui.table;
+        form.render();//进行表单渲染
+
+        //第一个实例
+        var myTable=table.render({
+            elem: '#demo'
+            , height: 400
+            , url: 'ShowUserLayui' //数据接口
+            , page: true //开启分页
+            ,limit:5
+            ,limits:[5,10,15,20,25,30]
+            ,toolbar:'#mytoolbar'
+            , cols: [
+                [ //表头
+                    {width: 120, fixed: true, checkbox: true}
+                    , {field: 'userid', title: '用户编号', width: 120, sort: true, fixed: 'left'}
+                    , {field: 'username', title: '用户名', width: 120, sort: true}
+                    , {field: 'password', title: '密码', width: 120, sort: true}
+                    , {field: 'salt', title: '盐值', width: 120, sort: true}
+                    ,{title: '操作', width: 180,toolbar:'#barDemo'}
+                ]]
+        });
+        table.on('toolbar(test)', function(obj){
+            var checkStatus = table.checkStatus(obj.config.id)
+                ,data = checkStatus.data; //获取选中的数据
+            var ids=[];
+            switch(obj.event){
+                case 'saveUser':
+                    layer.msg('添加用户');
+                    layer.open(
+                        {
+                            type:1,
+                            content:$('#userform'),
+                            title:"添加用户"
+                            ,area:['500px','200px']
+                        }
+                    )
+                    break;
+                case 'update':
+                    if(data.length === 0){
+                        layer.msg('请选择一行');
+                    } else if(data.length > 1){
+                        layer.msg('只能同时编辑一个');
+                    } else {
+                        layer.alert('编辑 [id]：'+ checkStatus.data[0].id);
+                    }
+                    break;
+                case 'delete':
+                    if(data.length === 0){
+                        layer.msg('请选择一行');
+                    } else {
+                        layer.msg('删除');
+                    }
+                    break;
+            };
+        });
+        //监听提交
+        form.on('submit(saveUserForm)',function(data){
+            //数据的提交，ajax方式
+            console.log(data.field)
+            $.ajax({
+                url: 'saveUser',//地址
+                dataType:'json',//数据类型
+                type: 'POST',//类型
+                data:data.field,
+                //请求成功
+                success:function (result) {
+                    if (result.code==0){
+                        //关闭弹出层
+                        layer.closeAll();
+                        //显示添加成功消息
+                        layer.msg(result.message,{icon:1})
+                        //重新加载数据表格
+                        myTable.reload();
+                    }else {
+                        layer.closeAll();
+                        layer.msg(result.message,{icon: 5})
+
+                    }
+                }
+            })
+            return false;
+        });
+</script>
+</html>
